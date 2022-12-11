@@ -15,7 +15,7 @@ function rot13(str) {
     if (alphabet.includes(str[i])) {
       let charIndex = alphabet.indexOf(str[i]);
       if (charIndex < 13) {
-        decodedStr += alphabet[charIndex - 13 + 26];
+        decodedStr += alphabet[charIndex + 13];
       } else {
         decodedStr += alphabet[charIndex - 13];
       }
