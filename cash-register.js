@@ -23,78 +23,117 @@ One-hundred Dollars	$100 (ONE HUNDRED)
 */
 
 function checkCashRegister(price, cash, cid) {
-  var totalChange = cash - price;
-  console.log(totalChange);
-  var register = {},
-    change = {};
+  function Money() {
+    this["ONE HUNDRED"] = 0;
+    this["TWENTY"] = 0;
+    this["TEN"] = 0;
+    this["FIVE"] = 0;
+    this["ONE"] = 0;
+    this["QUARTER"] = 0;
+    this["DIME"] = 0;
+    this["NICKEL"] = 0;
+    this["PENNY"] = 0;
+  }
 
+  var changeObj = new Money();
+  var registerObj = new Money();
   for (const currency of cid) {
-    register[currency[0]] = currency[1];
+    registerObj[currency[0]] = Math.ceil(currency[1] * 100);
   }
-  console.log(register);
-  function updateChange(currency, amount) {
-    console.log("updateChange run", currency, amount);
-    if (change.hasOwnProperty(`${currency}`)) {
-      change[`${currency}`] += amount;
+  var totalChange = Math.ceil((cash - price) * 100);
+
+  function checkRegister(currency, amount) {
+    if (registerObj[currency] >= amount) {
+      registerObj[currency] -= amount;
+      totalChange -= amount;
+      changeObj[currency] += amount;
     } else {
-      change[`${currency}`] = amount;
+      return false;
     }
-    totalChange -= amount;
-  }
-
-  function updateRegister(currency, amount) {
-    console.log("updateRegister run", currency, amount);
-    if (register[`${currency}`] > amount) {
-      register[`${currency}`] -= amount;
-      updateChange(currency, amount);
-      if (register[`${currency}`] === 0) {
-        delete register[`${currency}`];
-      }
-      return true;
-    }
-    return false;
-  }
-
-  function changeReducer(total) {
-    console.log("changeReducer run", total);
-    switch (true) {
-      case total >= 100:
-        return updateRegister("ONE HUNDRED", 100);
-      case total >= 20:
-        return updateRegister("TWENTY", 20);
-      case total >= 10:
-        return updateRegister("TEN", 10);
-      case total >= 5:
-        return updateRegister("FIVE", 5);
-      case total >= 1:
-        return updateRegister("ONE", 1);
-      case total >= 0.25:
-        return updateRegister("QUARTER", 0.25);
-      case total >= 0.1:
-        return updateRegister("DIME", Number(0.1).toFixed(2));
-      case total >= 0.05:
-        return updateRegister("NICKEL", 0.05);
-      case total >= 0.01:
-        return updateRegister("PENNY", 0.01);
-      default:
-        return false;
-    }
+    return true;
   }
 
   while (totalChange > 0) {
-    if (!changeReducer(totalChange)) {
-      return { status: "INSUFFICIENT_FUNDS", change: [] };
+    switch (true) {
+      case totalChange >= 10000:
+        if (checkRegister("ONE HUNDRED", 10000)) {
+          break;
+        }
+      case totalChange >= 2000:
+        if (checkRegister("TWENTY", 2000)) {
+          break;
+        }
+      case totalChange >= 1000:
+        if (checkRegister("TEN", 1000)) {
+          break;
+        }
+      case totalChange >= 500:
+        if (checkRegister("FIVE", 500)) {
+          break;
+        }
+      case totalChange >= 100:
+        if (checkRegister("ONE", 100)) {
+          break;
+        }
+      case totalChange >= 25:
+        if (checkRegister("QUARTER", 25)) {
+          break;
+        }
+      case totalChange >= 10:
+        if (checkRegister("DIME", 10)) {
+          break;
+        }
+      case totalChange >= 5:
+        if (checkRegister("NICKEL", 5)) {
+          break;
+        }
+      case totalChange >= 1:
+        if (checkRegister("PENNY", 1)) {
+          break;
+        }
+        return { status: "INSUFFICIENT_FUNDS", change: [] };
+      default:
+        break;
     }
   }
 
-  if (Object.keys(register).length === 0) {
-    return { status: "CLOSED", change: "none" };
+  let changeArr = Object.entries(changeObj).filter((item) => item[1] !== 0);
+  changeArr.forEach((e) => (e[1] /= 100));
+
+  if (Object.values(registerObj).every((e) => e === 0)) {
+    return { status: "CLOSED", change: cid };
+  } else {
+    return { status: "OPEN", change: changeArr };
   }
-
-  const changeArray = Object.entries(change);
-
-  return { status: "OPEN", change: changeArray };
 }
+
+console.log(
+  checkCashRegister(19.5, 20, [
+    ["PENNY", 0.01],
+    ["NICKEL", 0],
+    ["DIME", 0],
+    ["QUARTER", 0],
+    ["ONE", 0],
+    ["FIVE", 0],
+    ["TEN", 0],
+    ["TWENTY", 0],
+    ["ONE HUNDRED", 0],
+  ])
+);
+
+console.log(
+  checkCashRegister(19.5, 20, [
+    ["PENNY", 1.01],
+    ["NICKEL", 2.05],
+    ["DIME", 3.1],
+    ["QUARTER", 4.25],
+    ["ONE", 90],
+    ["FIVE", 55],
+    ["TEN", 20],
+    ["TWENTY", 60],
+    ["ONE HUNDRED", 100],
+  ])
+);
 
 console.log(
   checkCashRegister(3.26, 100, [
@@ -107,5 +146,19 @@ console.log(
     ["TEN", 20],
     ["TWENTY", 60],
     ["ONE HUNDRED", 100],
+  ])
+);
+
+console.log(
+  checkCashRegister(19.5, 20, [
+    ["PENNY", 0.5],
+    ["NICKEL", 0],
+    ["DIME", 0],
+    ["QUARTER", 0],
+    ["ONE", 0],
+    ["FIVE", 0],
+    ["TEN", 0],
+    ["TWENTY", 0],
+    ["ONE HUNDRED", 0],
   ])
 );
